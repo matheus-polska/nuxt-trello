@@ -4,7 +4,7 @@ export default {
   // Global page headers: https://go.nuxtjs.dev/config-head
 
   server: {
-    port: 8080 // default: 3000
+    port: process.env.PORT | 8080 // default: 3000
   },
   head: {
     title: "nuxt-trello",

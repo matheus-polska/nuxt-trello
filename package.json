@@ -1,0 +1,31 @@
+{
+  "name": "nuxt-trello",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "nuxt",
+    "build": "nuxt build",
+    "start": "nuxt start",
+    "generate": "nuxt generate"
+  },
+  "dependencies": {
+    "config": "^3.3.3",
+    "cookie-parser": "^1.4.5",
+    "cookie-universal-nuxt": "^2.1.4",
+    "cookieparser": "^0.1.0",
+    "core-js": "^3.8.2",
+    "firebase": "^8.2.4",
+    "firebase-admin": "^9.4.2",
+    "js-cookie": "^2.2.1",
+    "jwt-decode": "^3.1.2",
+    "nuxt": "^2.14.12",
+    "vue-smooth-dnd": "^0.8.1"
+  },
+  "devDependencies": {
+    "@fortawesome/free-brands-svg-icons": "^5.15.2",
+    "@fortawesome/free-regular-svg-icons": "^5.15.2",
+    "@fortawesome/free-solid-svg-icons": "^5.15.2",
+    "@nuxtjs/dotenv": "^1.4.1",
+    "nuxt-fontawesome": "^0.4.0"
+  }
+}

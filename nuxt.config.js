@@ -2,10 +2,6 @@ import serveStatic from "serve-static";
 
 export default {
   // Global page headers: https://go.nuxtjs.dev/config-head
-
-  server: {
-    port: process.env.PORT | 8080 // default: 3000
-  },
   head: {
     title: "nuxt-trello",
     htmlAttrs: {

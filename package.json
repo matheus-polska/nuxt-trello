@@ -19,13 +19,13 @@
     "js-cookie": "^2.2.1",
     "jwt-decode": "^3.1.2",
     "nuxt": "^2.14.12",
-    "vue-smooth-dnd": "^0.8.1"
-  },
-  "devDependencies": {
+    "vue-smooth-dnd": "^0.8.1",
     "@fortawesome/free-brands-svg-icons": "^5.15.2",
     "@fortawesome/free-regular-svg-icons": "^5.15.2",
     "@fortawesome/free-solid-svg-icons": "^5.15.2",
-    "@nuxtjs/dotenv": "^1.4.1",
     "nuxt-fontawesome": "^0.4.0"
+  },
+  "devDependencies": {
+    "@nuxtjs/dotenv": "^1.4.1"
   }
 }

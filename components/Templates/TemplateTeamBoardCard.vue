@@ -1,5 +1,9 @@
 <template>
   <div class="wrapper">
+    <div class="no-teams" v-if="boardsByTeams.length == 0">
+      <img src="~assets/Task-bro.svg" alt="" />
+      <p>You don't have any team yet</p>
+    </div>
     <OrganismTeamBoardCard
       @emitClickFired="onCreateBoardStart"
       :boardsByTeams="boardsByTeams"
@@ -98,5 +102,14 @@ textarea:focus {
   color: white;
   padding: 7px 29px;
   cursor: pointer;
+}
+
+.no-teams img {
+  max-height: 400px;
+  width: 100%;
+}
+.no-teams p {
+  text-align: center;
+  font-weight: bold;
 }
 </style>

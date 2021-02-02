@@ -14,6 +14,7 @@
         <div class="tags-container">
           <span
             :style="{ background: tag.color }"
+            @click="startTagModal(tag, 'editing')"
             v-for="tag in tags"
             :key="tag.id"
             >{{ tag.title }}</span
@@ -36,18 +37,10 @@
           v-model="taskDescription"
         ></textarea>
       </div>
-      <button
-        @click.prevent="emitEditItem"
-        v-show="showButtonSave"
-        class="btn-submit"
-      >
-        Save
-      </button>
     </div>
     <div class="settings-actions-container">
       <ul class="actions">
-        <li>Members</li>
-        <li @click="tagsModal = !tagsModal" id="tags-activator">
+        <li @click="startTagModal(false, false)" id="tags-activator">
           Tags
         </li>
         <li style="background: transparent; height: 0; padding: 0" id="tags">
@@ -189,6 +182,9 @@ export default {
       tagsModal: false,
       tagName: "",
       pickedTagColor: "",
+      mode: "",
+      tag: {},
+      tagEditingid: "",
       tags: []
     };
   },
@@ -200,16 +196,43 @@ export default {
       this.taskId = item.id;
       this.tags = item.tags;
     },
+    startTagModal(tag, mode) {
+      if (tag) {
+        this.tagName = tag.title;
+        this.pickedTagColor = tag.color;
+        this.tagEditingid = tag.id;
+        this.tagsModal = !this.tagsModal;
+        this.mode = mode;
+      } else {
+        this.tagsModal = !this.tagsModal;
+        this.mode = false;
+      }
+    },
     emitAddTag() {
-      this.$emit("onAddTag", {
-        tagName: this.tagName,
-        tagColor: this.pickedTagColor,
-        list_id: this.list_id,
-        taskId: this.taskId
-      });
+      if (this.mode == "editing") {
+        this.$emit("onAddTag", {
+          tagName: this.tagName,
+          tagColor: this.pickedTagColor,
+          tagId: this.tagEditingid,
+          taskId: this.taskId,
+          editing: true
+        });
+      } else {
+        this.$emit("onAddTag", {
+          tagName: this.tagName,
+          tagColor: this.pickedTagColor,
+          list_id: this.list_id,
+          taskId: this.taskId,
+          editing: false
+        });
+      }
+
       this.$refs.closetagsmodal.click();
       this.tagName = "";
       this.pickedTagColor = "";
+      this.mode = "";
+      this.tag = {};
+      this.tagEditingid = "";
     },
     handleBlur() {
       this.showButtonSave = false;
@@ -480,5 +503,6 @@ textarea:focus {
   color: white;
   margin-right: 10px;
   margin-top: 10px;
+  cursor: pointer;
 }
 </style>

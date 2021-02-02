@@ -1,7 +1,9 @@
 <template>
   <div>
     <h3>Membros do time</h3>
-    <button v-if="allowUser" @click="onRemoveTeam()">Deleter time</button>
+    <button class="btn-delete-team" v-if="allowUser" @click="onRemoveTeam()">
+      Deleter time
+    </button>
     <div v-if="allowUser" class="field">
       <input
         @keydown.enter="onAddUserToTeam"
@@ -195,6 +197,15 @@ select {
   background: #4e97c2;
   border-radius: 3px;
   cursor: pointer;
+}
+
+.btn-delete-team {
+  border: none;
+  outline: none;
+  background: red;
+  color: white;
+  padding: 5px 11px;
+  border-radius: 4px;
 }
 
 .role {

@@ -1,9 +1,8 @@
 <template>
   <div class="signin-container">
     <div class="login-box">
-      <h2>Entre para usar o Nuxt Trello</h2>
+      <h2>Login to start using Nuxt Trello</h2>
       <button @click="fbGoogleLogin">Login com o Google</button>
-      <NuxtLink to="/">Home</NuxtLink>
     </div>
   </div>
 </template>

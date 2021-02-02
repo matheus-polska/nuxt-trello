@@ -298,6 +298,15 @@ export const actions = {
     });
     console.log("Tag has been added");
   },
+  async updateTag(context, payload) {
+    const updatedTag = {
+      color: payload.tagColor,
+      title: payload.tagName
+    };
+    await tags.doc(payload.tagId).update(updatedTag);
+
+    console.log("Tag has been updated");
+  },
   async editTask(context, payload) {
     tasks.doc(payload.id).update({
       title: payload.title,

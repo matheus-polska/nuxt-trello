@@ -34,6 +34,7 @@ export default {
   padding: 0;
   white-space: nowrap;
   font-size: 15px;
+  cursor: pointer;
 }
 .menu-link div {
   padding: 5px 8px;

@@ -1,7 +1,9 @@
 <template>
   <div class="menu-links-left">
     <ul>
-      <AtomMenuLink iconName="home" />
+      <NuxtLink to="/">
+        <AtomMenuLink iconName="home" />
+      </NuxtLink>
       <NuxtLink to="/boards">
         <AtomMenuLink text="Quadros" iconName="border-all" />
       </NuxtLink>

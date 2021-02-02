@@ -142,7 +142,8 @@ export default {
       fetchTeamsUserIsParticipating: "manageteam/fetchTeamsUserIsParticipating",
       fetchSpecificManagedUser: "manageteam/fetchSpecificManagedUser",
       fetchTagsByBoard: "board/fetchTagsByBoard",
-      createTag: "board/createTag"
+      createTag: "board/createTag",
+      updateTag: "board/updateTag"
     }),
     onListDrop: makeDropHandler("onListDropComplete"),
     onListDropComplete(src, trg) {
@@ -170,7 +171,11 @@ export default {
       }, 230);
     },
     async onAddTag(payload) {
-      await this.createTag(payload);
+      if (payload.editing) {
+        await this.updateTag(payload);
+      } else {
+        await this.createTag(payload);
+      }
       await this.fetchTagsByBoard(this.$route.params.boardslug);
       await this.reFetchListsAndTasks();
 
@@ -405,7 +410,7 @@ li {
   position: relative;
   text-decoration: none;
   z-index: 0;
-  padding: 6px 8px 2px;
+  padding: 6px 8px 10px;
   font-size: 14px;
 }
 .container {
@@ -465,10 +470,11 @@ textarea:focus {
   cursor: pointer;
 }
 .tags {
-  padding-bottom: 16px;
+  padding-bottom: 10px;
   display: flex;
   align-items: center;
   justify-content: flex-start;
+  flex-wrap: wrap;
 }
 
 .tags span {
@@ -478,6 +484,7 @@ textarea:focus {
   font-size: 13px;
   color: white;
   margin-right: 10px;
+  margin-top: 10px;
 }
 
 /* SCROLL */

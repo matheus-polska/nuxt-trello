@@ -1,13 +1,17 @@
 <template>
-  <div class="title">
-    <h3>{{ titleText }}</h3>
-    <fa :icon="['fas', 'user-friends']" />
+  <div>
+    <div class="title">
+      <h3>{{ titleText }}</h3>
+      <fa :icon="['fas', 'user-friends']" />
+    </div>
+    <p>{{ description }}</p>
   </div>
 </template>
 <script>
 export default {
   props: {
-    titleText: String
+    titleText: String,
+    description: String
   }
 };
 </script>

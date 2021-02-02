@@ -1,7 +1,6 @@
 <template>
   <div class="menu-links-right">
     <ul>
-      <AtomMenuLink iconName="bell" />
       <AtomMenuLink @emitClickFired="fbGoogleLogout" iconName="sign-out-alt" />
     </ul>
   </div>
@@ -16,7 +15,7 @@ export default {
     }),
     async fbGoogleLogout() {
       await this.logout();
-      this.$router.push("/site");
+      this.$router.push("/signin");
     }
   }
 };

@@ -5,7 +5,10 @@
       v-for="team in boardsByTeams"
       :key="team.id"
     >
-      <AtomTeamBoardCardTitle :titleText="team.teamName" />
+      <AtomTeamBoardCardTitle
+        :description="team.teamDescription"
+        :titleText="team.teamName"
+      />
       <div class="boards">
         <MoleculeBoardCard
           v-for="board in team.boards"

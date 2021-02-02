@@ -59,18 +59,21 @@ export default {
     ...mapActions({
       createTeam: "main/createTeam",
       fetchTeamsByUser: "main/fetchTeamsByUser",
-      fetchTeamsUserIsParticipating: "manageteam/fetchTeamsUserIsParticipating"
+      fetchTeamsUserIsParticipating: "manageteam/fetchTeamsUserIsParticipating",
+      fetchBoardsByTeams: "board/fetchBoardsByTeams"
     }),
     openedModal() {
       this.opened = true;
     },
-    onCreateTeam() {
+    async onCreateTeam() {
       const newTeam = {
         teamName: this.teamName,
         teamTopic: this.teamTopic,
         teamDescription: this.teamDescription
       };
-      this.createTeam(newTeam);
+      await this.createTeam(newTeam);
+      this.fetchBoardsByTeams();
+      this.opened = false;
     }
   },
   created() {

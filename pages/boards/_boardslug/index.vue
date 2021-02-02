@@ -36,6 +36,13 @@
               >
                 <Draggable v-for="item in itemsFromList(i)" :key="item.id">
                   <div @click="onItemSettings(item)" class="list-card">
+                    <div class="tags">
+                      <span
+                        :style="{ background: tag.color }"
+                        v-for="tag in item.tags"
+                        :key="tag.id"
+                      ></span>
+                    </div>
                     {{ item.title }}
                   </div>
                 </Draggable>
@@ -63,6 +70,7 @@
       <OrganismItemSettings
         @onDeleteTask="onDeleteTask"
         @onEditItem="editItem"
+        @onAddTag="onAddTag"
         ref="settings"
       />
     </OrganismModal>
@@ -132,7 +140,9 @@ export default {
       fetchIndividualTeam: "main/fetchIndividualTeam",
       fetchTeamsByUser: "main/fetchTeamsByUser",
       fetchTeamsUserIsParticipating: "manageteam/fetchTeamsUserIsParticipating",
-      fetchSpecificManagedUser: "manageteam/fetchSpecificManagedUser"
+      fetchSpecificManagedUser: "manageteam/fetchSpecificManagedUser",
+      fetchTagsByBoard: "board/fetchTagsByBoard",
+      createTag: "board/createTag"
     }),
     onListDrop: makeDropHandler("onListDropComplete"),
     onListDropComplete(src, trg) {
@@ -154,7 +164,21 @@ export default {
         return;
       }
       await this.createTask({ list_id, title });
-      this.reFetchListsAndTasks();
+      await this.reFetchListsAndTasks();
+      setTimeout(() => {
+        this.scrollToElement();
+      }, 230);
+    },
+    async onAddTag(payload) {
+      await this.createTag(payload);
+      await this.fetchTagsByBoard(this.$route.params.boardslug);
+      await this.reFetchListsAndTasks();
+
+      this.$nextTick(() => {
+        const task = this.emulatedTasks.find(tsk => tsk.id === payload.taskId);
+        this.$refs.settings.updateData(task);
+        console.log(task);
+      });
     },
     async addFullItem(item) {
       await this.createTask({
@@ -202,7 +226,7 @@ export default {
     },
     async reFetchListsAndTasks() {
       await this.fetchTasks(this.$route.params.boardslug);
-      this.fetchLists(this.$route.params.boardslug);
+      await this.fetchLists(this.$route.params.boardslug);
     },
     async onEditListTitle({ title }, id) {
       const payload = {
@@ -245,6 +269,13 @@ export default {
           email: this.user.email
         });
       }
+    },
+    scrollToElement() {
+      const el = this.$el.getElementsByClassName("list-content")[0];
+      if (el) {
+        // Use el.scrollIntoView() to instantly scroll to the element
+        el.scrollTop = el.scrollHeight + 120;
+      }
     }
   },
   computed: {
@@ -257,12 +288,14 @@ export default {
       individualBoard: "board/individualBoard",
       team: "main/IndividualTeam",
       user: "auth/user",
-      managedUser: "manageteam/managedUser"
+      managedUser: "manageteam/managedUser",
+      emulatedTasks: "board/emulatedTasks"
     })
   },
   async created() {
     await this.fetchTeamsByUser();
     await this.fetchTeamsUserIsParticipating();
+    await this.fetchTagsByBoard(this.$route.params.boardslug);
     await this.fetchTasks(this.$route.params.boardslug);
     this.fetchLists(this.$route.params.boardslug);
     await this.fetchIndividualBoard(this.$route.params.boardslug);
@@ -430,5 +463,54 @@ textarea:focus {
   color: white;
   padding: 7px 29px;
   cursor: pointer;
+}
+.tags {
+  padding-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.tags span {
+  display: block;
+  padding: 3px 18px;
+  border-radius: 75px;
+  font-size: 13px;
+  color: white;
+  margin-right: 10px;
+}
+
+/* SCROLL */
+.smooth-dnd-container {
+  height: 100%;
+}
+
+.list-content {
+  overflow-y: auto;
+  height: 100%;
+  overflow-x: hidden;
+}
+
+.list {
+  overflow-y: auto;
+  max-height: -webkit-fill-available;
+  overflow-x: hidden;
+}
+
+.list-content::-webkit-scrollbar-track {
+  background: rgba(9, 30, 66, 0.08);
+}
+.list-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.list-content::-webkit-scrollbar-track {
+  background: #e6e6e6;
+  border-radius: 10px;
+}
+
+.list-content::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  background: #d0d0d0;
 }
 </style>

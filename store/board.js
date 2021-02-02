@@ -3,6 +3,7 @@ import { db } from "~/firebase/db";
 const tasks = db.collection("tasks");
 const lists = db.collection("lists");
 const boards = db.collection("boards");
+const tags = db.collection("tags");
 
 export const state = () => ({
   boards: [],
@@ -10,13 +11,17 @@ export const state = () => ({
   individualBoard: {},
   lists: [],
   tasks: [],
-  emulatedLists: []
+  tags: [],
+  emulatedLists: [],
+  emulatedTasks: []
 });
 
 export const mutations = {
   CREATE_EMULATED_LIST(state) {
     const emulatedList = state.lists.map(list => {
-      const arrayOfTasks = state.tasks.filter(task => task.list_id == list.id);
+      const arrayOfTasks = state.emulatedTasks.filter(
+        task => task.list_id == list.id
+      );
       list.items = arrayOfTasks;
       return list;
     });
@@ -30,6 +35,17 @@ export const mutations = {
   },
   SET_TASKS(state, payload) {
     state.tasks = payload;
+  },
+  SET_TAGS(state, payload) {
+    state.tags = payload;
+  },
+  CREATE_EMULATED_TASKS(state) {
+    const emulatedTasks = state.tasks.map(tsk => {
+      const arrayOfTags = state.tags.filter(tag => tag.task_id == tsk.id);
+      tsk.tags = arrayOfTags;
+      return tsk;
+    });
+    state.emulatedTasks = emulatedTasks;
   },
   SET_BOARDS(state, payload) {
     state.boards = payload;
@@ -110,25 +126,69 @@ export const actions = {
     }
   },
   async fetchListsByBoard(context, payload) {
-    const data = [];
-    lists
-      .orderBy("order")
-      .where("board_id", "==", payload)
-      .get()
-      .then(querySnapshot => {
-        querySnapshot.forEach(doc => {
-          data.push(doc.data());
-          console.log(doc);
+    return new Promise(resolve => {
+      const data = [];
+      lists
+        .orderBy("order")
+        .where("board_id", "==", payload)
+        .get()
+        .then(querySnapshot => {
+          querySnapshot.forEach(doc => {
+            data.push(doc.data());
+          });
+          context.commit("SET_LISTS", data);
+          context.commit("CREATE_EMULATED_LIST");
+          resolve();
+        })
+        .catch(error => {
+          console.log("Error getting documents: ", error);
         });
+    });
+  },
+  async fetchTagsByBoard(context, payload) {
+    return new Promise(resolve => {
+      const data = [];
+      tags
+        .where("board_id", "==", payload)
+        .get()
+        .then(querySnapshot => {
+          querySnapshot.forEach(doc => {
+            data.push(doc.data());
+          });
+          context.commit("SET_TAGS", data);
+          resolve();
+        })
+        .catch(error => {
+          console.log("Error getting documents: ", error);
+        });
+    });
+  },
+  async fetchBoardsByTeams(context) {
+    const teams = context.rootGetters["main/userTeams"];
+    const data_boards = [];
+    console.log("cheguei");
 
-        context.commit("SET_LISTS", data);
-        context.commit("CREATE_EMULATED_LIST");
-      })
-      .catch(error => {
-        console.log("Error getting documents: ", error);
-      });
+    if (teams.length == 0) {
+      context.state.boardsByTeams = [];
+      return;
+    }
+    await teams.forEach(team => {
+      boards
+        .where("team_id", "==", team.id)
+        .get()
+        .then(function(bds) {
+          bds.forEach(doc => {
+            if (doc.data()) {
+              console.log(doc.data());
+              data_boards.push(doc.data());
+            }
+          });
+          context.commit("SET_BOARDS_BY_TEAMS", { teams, data_boards });
+        });
+    });
   },
   async fetchBoardsByTeam(context, payload) {
+    console.log(payload);
     const userteamid = context.rootGetters["main/userTeams"];
     const participatingTeamId =
       context.rootGetters["manageteam/teamsUserIsParticipating"];
@@ -145,21 +205,24 @@ export const actions = {
     });
   },
   async fetchTasksByBoard(context, payload) {
-    const data = [];
-    tasks
-      .where("board_id", "==", payload)
-      .get()
-      .then(querySnapshot => {
-        querySnapshot.forEach(doc => {
-          data.push(doc.data());
-          console.log(doc);
-        });
+    return new Promise(resolve => {
+      const data = [];
+      tasks
+        .where("board_id", "==", payload)
+        .get()
+        .then(querySnapshot => {
+          querySnapshot.forEach(doc => {
+            data.push(doc.data());
+          });
 
-        context.commit("SET_TASKS", data);
-      })
-      .catch(error => {
-        console.log("Error getting documents: ", error);
-      });
+          context.commit("SET_TASKS", data);
+          context.commit("CREATE_EMULATED_TASKS");
+          resolve();
+        })
+        .catch(error => {
+          console.log("Error getting documents: ", error);
+        });
+    });
   },
   async fetchIndividualBoard(context, payload) {
     return new Promise((resolve, reject) => {
@@ -215,6 +278,26 @@ export const actions = {
     });
     console.log("Task has been added");
   },
+  async createTag(context, payload) {
+    const userId = context.rootGetters["auth/user"].uid;
+    const board = context.getters.individualBoard;
+
+    const newTag = {
+      creator_id: userId,
+      color: payload.tagColor,
+      team_id: board.team_id,
+      board_id: board.id,
+      list_id: payload.list_id,
+      task_id: payload.taskId,
+      title: payload.tagName
+    };
+    const tagsDocRef = tags.doc();
+    await tagsDocRef.set({
+      ...newTag,
+      id: tagsDocRef.id
+    });
+    console.log("Tag has been added");
+  },
   async editTask(context, payload) {
     tasks.doc(payload.id).update({
       title: payload.title,
@@ -255,6 +338,7 @@ export const actions = {
       });
 
     const batchTwo = db.batch();
+
     await tasks
       .where("board_id", "==", payload)
       .get()
@@ -262,25 +346,6 @@ export const actions = {
         tks.forEach(doc => batchTwo.delete(doc.ref));
         batchTwo.commit();
       });
-  },
-  async fetchBoardsByTeams(context) {
-    const teams = context.rootGetters["main/userTeams"];
-    const data_boards = [];
-
-    await teams.forEach(team => {
-      boards
-        .where("team_id", "==", team.id)
-        .get()
-        .then(function(bds) {
-          bds.forEach(doc => {
-            if (doc.data()) {
-              console.log(doc.data());
-              data_boards.push(doc.data());
-            }
-          });
-          context.commit("SET_BOARDS_BY_TEAMS", { teams, data_boards });
-        });
-    });
   }
 };
 
@@ -299,5 +364,8 @@ export const getters = {
   },
   boardsByTeams(state) {
     return state.boardsByTeams;
+  },
+  emulatedTasks(state) {
+    return state.emulatedTasks;
   }
 };

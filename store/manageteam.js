@@ -6,6 +6,7 @@ const boards = db.collection("boards");
 const teams = db.collection("teams");
 const managedteams = db.collection("manageteams");
 const users = db.collection("users");
+const tags = db.collection("tags");
 
 export const state = () => ({
   usersInManagedTeams: [],
@@ -118,6 +119,49 @@ export const actions = {
   },
   async removeUser(context, id) {
     managedteams.doc(id).delete();
+  },
+  async removeTeam(context, payload) {
+    await teams.doc(payload).delete();
+
+    const batchOne = db.batch();
+
+    await lists
+      .where("team_id", "==", payload)
+      .get()
+      .then(lts => {
+        lts.forEach(doc => batchOne.delete(doc.ref));
+        batchOne.commit();
+      });
+
+    const batchTwo = db.batch();
+
+    await boards
+      .where("team_id", "==", payload)
+      .get()
+      .then(bds => {
+        bds.forEach(doc => batchTwo.delete(doc.ref));
+        batchTwo.commit();
+      });
+
+    const batchThree = db.batch();
+
+    await tasks
+      .where("team_id", "==", payload)
+      .get()
+      .then(tks => {
+        tks.forEach(doc => batchThree.delete(doc.ref));
+        batchThree.commit();
+      });
+
+    const batchFour = db.batch();
+
+    await tags
+      .where("team_id", "==", payload)
+      .get()
+      .then(tgs => {
+        tgs.forEach(doc => batchFour.delete(doc.ref));
+        batchFour.commit();
+      });
   }
 };
 

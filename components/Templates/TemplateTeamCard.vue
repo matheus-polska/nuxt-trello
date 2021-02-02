@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="wrapper">
     <OrganismTeamCard :boards="boards" :team="team" />
     <AtomButtonCreateBoard @emitClickFired="opened = !opened" />
     <OrganismModal
@@ -119,5 +119,8 @@ textarea:focus {
   color: white;
   padding: 7px 29px;
   cursor: pointer;
+}
+.wrapper {
+  padding-bottom: 30px;
 }
 </style>

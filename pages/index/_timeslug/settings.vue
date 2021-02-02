@@ -1,7 +1,7 @@
 <template>
   <div>
     <h3>Membros do time</h3>
-    <button v-if="allowUser">Deleter time</button>
+    <button v-if="allowUser" @click="onRemoveTeam()">Deleter time</button>
     <div v-if="allowUser" class="field">
       <input
         @keydown.enter="onAddUserToTeam"
@@ -77,7 +77,10 @@ export default {
       changeUserRole: "manageteam/changeUserRole",
       fetchTeamCreatorInfo: "manageteam/fetchTeamCreatorInfo",
       removeUser: "manageteam/removeUser",
-      fetchTeamsUserIsParticipating: "manageteam/fetchTeamsUserIsParticipating"
+      fetchTeamsUserIsParticipating: "manageteam/fetchTeamsUserIsParticipating",
+      removeTeam: "manageteam/removeTeam",
+      fetchTeamsByUser: "main/fetchTeamsByUser",
+      fetchBoardsByTeams: "board/fetchBoardsByTeams"
     }),
     async onAddUserToTeam() {
       const payload = {
@@ -101,6 +104,12 @@ export default {
         await this.fetchTeamsUserIsParticipating();
         this.$router.push("/");
       }
+    },
+    async onRemoveTeam() {
+      await this.removeTeam(this.$route.params.timeslug);
+      await this.fetchTeamsByUser();
+      await this.fetchBoardsByTeams();
+      this.$router.push("/boards");
     }
   },
   computed: {

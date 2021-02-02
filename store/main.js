@@ -35,11 +35,16 @@ export const actions = {
     console.log("Team has been added");
   },
   async fetchTeamsByUser(context) {
-    const userId = context.rootGetters["auth/user"].uid;
-    teams.where("creator_id", "==", userId).onSnapshot(function(querySnapshot) {
-      const teams = [];
-      querySnapshot.forEach(doc => teams.push(doc.data()));
-      context.commit("SET_USERTEAMS", teams);
+    return new Promise(resolve => {
+      const userId = context.rootGetters["auth/user"].uid;
+      teams
+        .where("creator_id", "==", userId)
+        .onSnapshot(function(querySnapshot) {
+          const teams = [];
+          querySnapshot.forEach(doc => teams.push(doc.data()));
+          context.commit("SET_USERTEAMS", teams);
+          resolve();
+        });
     });
   },
   fetchIndividualTeam(context, payload) {

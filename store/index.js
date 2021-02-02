@@ -1,4 +1,4 @@
-import { getUserFromCookie, getUserFromSession } from "@/helpers";
+import { getUserFromCookie } from "@/helpers";
 
 export const actions = {
   async nuxtServerInit({ dispatch }, { req }) {

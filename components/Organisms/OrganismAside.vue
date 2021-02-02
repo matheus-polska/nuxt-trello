@@ -3,7 +3,7 @@
     <MoleculeAsideLinks :arrayOfLinks="fixedLinks" />
     <MoleculeAsideLinks
       @emitClickFired="$emit('emitClickFired')"
-      title="Times"
+      title="My Teams"
       :arrayOfLinks="userTeams"
     />
     <MoleculeAsideLinks

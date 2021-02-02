@@ -14,7 +14,7 @@
         v-model="taskDescription"
       ></textarea>
     </div>
-    <button class="btn-submit">Create list</button>
+    <button class="btn-submit">Create task</button>
   </form>
 </template>
 <script>

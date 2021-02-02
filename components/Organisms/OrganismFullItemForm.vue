@@ -51,7 +51,7 @@ input {
   border: 1px solid #a6a6a6;
   outline: none;
   height: 31px;
-  transition: border 0.3ms ease-in-out;
+  transition: border 0.4ms ease-in-out;
   border-radius: 5px;
 }
 textarea {

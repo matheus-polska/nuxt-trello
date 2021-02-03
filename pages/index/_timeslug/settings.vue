@@ -2,7 +2,7 @@
   <div>
     <h3>Membros do time</h3>
     <button class="btn-delete-team" v-if="allowUser" @click="onRemoveTeam()">
-      Deleter time
+      Delete team
     </button>
     <div v-if="allowUser" class="field">
       <input

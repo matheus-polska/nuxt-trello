@@ -4,6 +4,7 @@
       <div class="edit-helper field" style="cursor: pointer">
         <fa style="margin-right: 10px" :icon="['fas', 'edit']" />
         <input
+          class="pattern-input"
           @blur="emitEditItem"
           placeholder=""
           type="Enter the board name"
@@ -36,10 +37,78 @@
           placeholder="Enter a short description about your team"
           v-model="taskDescription"
         ></textarea>
+        <div
+          v-for="checklist in checklists"
+          :key="checklist.id"
+          class="check-list-box"
+        >
+          <div class="check-list-header">
+            <div>
+              <fa style="margin-right: 10px" :icon="['fas', 'tasks']" />
+              <h3>{{ checklist.title }}</h3>
+            </div>
+            <button @click="onDeleteCheckList(checklist.id)">Delete</button>
+          </div>
+          <div class="checklists">
+            <div
+              v-for="checkitem in checklist.checkitems"
+              :key="checkitem.id"
+              class="check-item"
+            >
+              <div>
+                <input
+                  type="checkbox"
+                  id="vehicle1"
+                  name="vehicle1"
+                  :checked="checkitem.completed"
+                  @change="onUpdateCheckItem($event, checkitem.id)"
+                  :value="checkitem.completed"
+                />
+                <label
+                  :class="{ completed: checkitem.completed }"
+                  for="vehicle1"
+                >
+                  {{ checkitem.title }}</label
+                >
+              </div>
+              <span @click="onDeleteCheckItem(checkitem.id)">
+                <fa style="margin-right: 10px" :icon="['fas', 'times']" />
+              </span>
+            </div>
+          </div>
+          <MoleculeChecklistInput
+            @onAddCheckitem="onAddCheckitem($event, checklist.id)"
+          />
+        </div>
       </div>
     </div>
     <div class="settings-actions-container">
       <ul class="actions">
+        <li @click="checklistmodal = !checklistmodal">Checklist</li>
+        <li style="background: transparent; height: 0; padding: 0" id="tags">
+          <div class="tags-box" v-if="checklistmodal">
+            <span
+              ref="closechecklistmodal"
+              class="btn-close-tags"
+              @click="checklistmodal = !checklistmodal"
+              >x</span
+            >
+            <div class="tags-header">
+              <h4>Add a checklist</h4>
+            </div>
+            <input
+              @keydown.enter="onAddCheckList"
+              class="pattern-input"
+              v-model="checkListName"
+              type="text"
+              placeholder="enter the checklist title"
+            />
+
+            <button @click="onAddCheckList" class="button-tag-create">
+              Save
+            </button>
+          </div>
+        </li>
         <li @click="startTagModal(false, false)" id="tags-activator">
           Tags
         </li>
@@ -55,6 +124,8 @@
               <h4>Create a new tag</h4>
             </div>
             <input
+              @keydown.enter="emitAddTag"
+              class="pattern-input"
               v-model="tagName"
               type="text"
               placeholder="enter the tag name"
@@ -180,12 +251,16 @@ export default {
       showButtonSave: false,
       taskId: "",
       tagsModal: false,
+      checklistmodal: false,
       tagName: "",
+      checkListName: "",
       pickedTagColor: "",
       mode: "",
       tag: {},
       tagEditingid: "",
-      tags: []
+      tags: [],
+      completed: null,
+      checklists: []
     };
   },
   methods: {
@@ -195,6 +270,7 @@ export default {
       this.taskDescription = item.description;
       this.taskId = item.id;
       this.tags = item.tags;
+      this.checklists = item.checklists;
     },
     startTagModal(tag, mode) {
       if (tag) {
@@ -209,6 +285,11 @@ export default {
       }
     },
     emitAddTag() {
+      if (this.tagName == "" || this.pickedTagColor == "") {
+        alert("Select name and tag color");
+        return;
+      }
+
       if (this.mode == "editing") {
         this.$emit("onAddTag", {
           tagName: this.tagName,
@@ -234,12 +315,51 @@ export default {
       this.tag = {};
       this.tagEditingid = "";
     },
+    onAddCheckList() {
+      const checkList = {
+        checkListName: this.checkListName,
+        list_id: this.list_id,
+        taskId: this.taskId
+      };
+      this.$emit("onAddCheckList", checkList);
+      this.$refs.closechecklistmodal.click();
+      this.checkListName = "";
+    },
+    onAddCheckitem(name, checklistid) {
+      const newCheckItem = {
+        list_id: this.list_id,
+        task_id: this.taskId,
+        checklist_id: checklistid,
+        title: name
+      };
+      this.$emit("onAddCheckitem", newCheckItem);
+    },
+    onUpdateCheckItem($event, id) {
+      this.$emit("onUpdateCheckItem", {
+        value: $event.target.checked,
+        task_id: this.taskId,
+        checkitem_id: id
+      });
+      console.log($event.target.checked);
+    },
     handleBlur() {
       this.showButtonSave = false;
       this.emitEditItem();
     },
     onDeleteTask() {
       this.$emit("onDeleteTask", this.taskId);
+    },
+    onDeleteCheckList(id) {
+      this.$emit("onDeleteCheckList", {
+        checklist_id: id,
+        task_id: this.taskId
+      });
+    },
+    onDeleteCheckItem(id) {
+      this.$emit("onDeleteCheckItem", {
+        checkitem_id: id,
+        task_id: this.taskId
+      });
     },
     emitEditItem() {
       this.$emit("onEditItem", {
@@ -257,7 +377,7 @@ label {
   margin-bottom: 5px;
   color: grey;
 }
-input {
+.pattern-input {
   width: 100%;
   border: none;
   outline: none;
@@ -504,5 +624,71 @@ textarea:focus {
   margin-right: 10px;
   margin-top: 10px;
   cursor: pointer;
+}
+
+/* Checklists */
+
+.check-list-box {
+  width: 100%;
+}
+.check-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.check-list-header h3 {
+  font-size: 17px;
+  font-weight: 500;
+}
+.check-list-header > div {
+  display: flex;
+  align-items: center;
+}
+.check-list-header button {
+  background-color: rgba(9, 30, 66, 0.07);
+  box-shadow: none;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  display: block;
+  height: 32px;
+  margin-top: 8px;
+  max-width: 300px;
+  padding: 6px 12px;
+  white-space: nowrap;
+  cursor: pointer;
+  font-size: 13px;
+  position: relative;
+  outline: none;
+}
+.checklists input {
+  cursor: pointer;
+  margin-right: 10px;
+}
+.check-item:not(:first-of-type) {
+  margin-top: 10px;
+}
+.check-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 15px;
+}
+.check-item span {
+  cursor: pointer;
+}
+
+.check-item span:hover {
+  opacity: 0.5;
+}
+
+.checklists input,
+.checklists label {
+  display: inline-block;
+}
+.check-item-input {
+}
+.completed {
+  text-decoration: line-through;
 }
 </style>

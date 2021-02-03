@@ -71,6 +71,11 @@
         @onDeleteTask="onDeleteTask"
         @onEditItem="editItem"
         @onAddTag="onAddTag"
+        @onAddCheckList="onAddCheckList"
+        @onAddCheckitem="onAddCheckitem"
+        @onUpdateCheckItem="onUpdateCheckItem"
+        @onDeleteCheckList="onDeleteCheckList"
+        @onDeleteCheckItem="onDeleteCheckItem"
         ref="settings"
       />
     </OrganismModal>
@@ -143,7 +148,14 @@ export default {
       fetchSpecificManagedUser: "manageteam/fetchSpecificManagedUser",
       fetchTagsByBoard: "board/fetchTagsByBoard",
       createTag: "board/createTag",
-      updateTag: "board/updateTag"
+      updateTag: "board/updateTag",
+      addCheckList: "board/addCheckList",
+      fetchCheckListsByBoard: "board/fetchCheckListsByBoard",
+      addCheckItem: "board/addCheckItem",
+      fetchCheckitemsByBoard: "board/fetchCheckitemsByBoard",
+      updateCheckItem: "board/updateCheckItem",
+      deleteCheckList: "board/deleteCheckList",
+      deleteCheckItem: "board/deleteCheckItem"
     }),
     onListDrop: makeDropHandler("onListDropComplete"),
     onListDropComplete(src, trg) {
@@ -181,6 +193,61 @@ export default {
 
       this.$nextTick(() => {
         const task = this.emulatedTasks.find(tsk => tsk.id === payload.taskId);
+        this.$refs.settings.updateData(task);
+        console.log(task);
+      });
+    },
+    async onAddCheckitem(payload) {
+      await this.addCheckItem(payload);
+      await this.fetchCheckitemsByBoard(this.$route.params.boardslug);
+      await this.fetchCheckListsByBoard(this.$route.params.boardslug);
+      await this.reFetchListsAndTasks();
+      this.$nextTick(() => {
+        const task = this.emulatedTasks.find(tsk => tsk.id === payload.task_id);
+        this.$refs.settings.updateData(task);
+        console.log(task);
+      });
+    },
+    async onUpdateCheckItem(payload) {
+      await this.updateCheckItem(payload);
+      await this.fetchCheckitemsByBoard(this.$route.params.boardslug);
+      await this.fetchCheckListsByBoard(this.$route.params.boardslug);
+      await this.reFetchListsAndTasks();
+      this.$nextTick(() => {
+        const task = this.emulatedTasks.find(tsk => tsk.id === payload.task_id);
+        this.$refs.settings.updateData(task);
+        console.log(task);
+      });
+    },
+    async onAddCheckList(payload) {
+      await this.addCheckList(payload);
+      await this.fetchCheckListsByBoard(this.$route.params.boardslug);
+      await this.reFetchListsAndTasks();
+
+      this.$nextTick(() => {
+        const task = this.emulatedTasks.find(tsk => tsk.id === payload.taskId);
+        this.$refs.settings.updateData(task);
+        console.log(task);
+      });
+    },
+    async onDeleteCheckList(payload) {
+      await this.deleteCheckList(payload.checklist_id);
+      await this.fetchCheckListsByBoard(this.$route.params.boardslug);
+      await this.reFetchListsAndTasks();
+
+      this.$nextTick(() => {
+        const task = this.emulatedTasks.find(tsk => tsk.id === payload.task_id);
+        this.$refs.settings.updateData(task);
+        console.log(task);
+      });
+    },
+    async onDeleteCheckItem(payload) {
+      await this.deleteCheckItem(payload.checkitem_id);
+      await this.fetchCheckListsByBoard(this.$route.params.boardslug);
+      await this.reFetchListsAndTasks();
+
+      this.$nextTick(() => {
+        const task = this.emulatedTasks.find(tsk => tsk.id === payload.task_id);
         this.$refs.settings.updateData(task);
         console.log(task);
       });
@@ -300,7 +367,9 @@ export default {
   async created() {
     await this.fetchTeamsByUser();
     await this.fetchTeamsUserIsParticipating();
+    await this.fetchCheckitemsByBoard(this.$route.params.boardslug);
     await this.fetchTagsByBoard(this.$route.params.boardslug);
+    await this.fetchCheckListsByBoard(this.$route.params.boardslug);
     await this.fetchTasks(this.$route.params.boardslug);
     this.fetchLists(this.$route.params.boardslug);
     await this.fetchIndividualBoard(this.$route.params.boardslug);

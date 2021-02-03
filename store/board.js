@@ -4,6 +4,8 @@ const tasks = db.collection("tasks");
 const lists = db.collection("lists");
 const boards = db.collection("boards");
 const tags = db.collection("tags");
+const checklists = db.collection("checklists");
+const checkitems = db.collection("checkitems");
 
 export const state = () => ({
   boards: [],
@@ -12,6 +14,8 @@ export const state = () => ({
   lists: [],
   tasks: [],
   tags: [],
+  checkLists: [],
+  checkitems: [],
   emulatedLists: [],
   emulatedTasks: []
 });
@@ -39,10 +43,28 @@ export const mutations = {
   SET_TAGS(state, payload) {
     state.tags = payload;
   },
+  SET_CHECKITEMS(state, payload) {
+    state.checkitems = payload;
+  },
+  SET_CHECKLISTS(state, payload) {
+    state.checkLists = payload;
+  },
   CREATE_EMULATED_TASKS(state) {
     const emulatedTasks = state.tasks.map(tsk => {
       const arrayOfTags = state.tags.filter(tag => tag.task_id == tsk.id);
+      const arrayOfChecklists = state.checkLists.filter(
+        chl => chl.task_id == tsk.id
+      );
+      const mappedArrayOfChecklists = arrayOfChecklists.map(chl => {
+        const arrayOfCheckItems = state.checkitems.filter(
+          chk => chk.checklist_id == chl.id
+        );
+        chl.checkitems = arrayOfCheckItems;
+        return chl;
+      });
+
       tsk.tags = arrayOfTags;
+      tsk.checklists = mappedArrayOfChecklists;
       return tsk;
     });
     state.emulatedTasks = emulatedTasks;
@@ -127,40 +149,58 @@ export const actions = {
   },
   async fetchListsByBoard(context, payload) {
     return new Promise(resolve => {
-      const data = [];
+      let data = [];
       lists
         .orderBy("order")
         .where("board_id", "==", payload)
-        .get()
-        .then(querySnapshot => {
+        .onSnapshot(querySnapshot => {
+          data = [];
           querySnapshot.forEach(doc => {
             data.push(doc.data());
           });
           context.commit("SET_LISTS", data);
           context.commit("CREATE_EMULATED_LIST");
           resolve();
-        })
-        .catch(error => {
-          console.log("Error getting documents: ", error);
         });
     });
   },
   async fetchTagsByBoard(context, payload) {
     return new Promise(resolve => {
-      const data = [];
-      tags
-        .where("board_id", "==", payload)
-        .get()
-        .then(querySnapshot => {
-          querySnapshot.forEach(doc => {
-            data.push(doc.data());
-          });
-          context.commit("SET_TAGS", data);
-          resolve();
-        })
-        .catch(error => {
-          console.log("Error getting documents: ", error);
+      let data = [];
+      tags.where("board_id", "==", payload).onSnapshot(querySnapshot => {
+        data = [];
+        querySnapshot.forEach(doc => {
+          data.push(doc.data());
         });
+        context.commit("SET_TAGS", data);
+        resolve();
+      });
+    });
+  },
+  async fetchCheckitemsByBoard(context, payload) {
+    return new Promise(resolve => {
+      let data = [];
+      checkitems.where("board_id", "==", payload).onSnapshot(querySnapshot => {
+        data = [];
+        querySnapshot.forEach(doc => {
+          data.push(doc.data());
+        });
+        context.commit("SET_CHECKITEMS", data);
+        resolve();
+      });
+    });
+  },
+  async fetchCheckListsByBoard(context, payload) {
+    return new Promise(resolve => {
+      let data = [];
+      checklists.where("board_id", "==", payload).onSnapshot(querySnapshot => {
+        data = [];
+        querySnapshot.forEach(doc => {
+          data.push(doc.data());
+        });
+        context.commit("SET_CHECKLISTS", data);
+        resolve();
+      });
     });
   },
   async fetchBoardsByTeams(context) {
@@ -206,22 +246,17 @@ export const actions = {
   },
   async fetchTasksByBoard(context, payload) {
     return new Promise(resolve => {
-      const data = [];
-      tasks
-        .where("board_id", "==", payload)
-        .get()
-        .then(querySnapshot => {
-          querySnapshot.forEach(doc => {
-            data.push(doc.data());
-          });
-
-          context.commit("SET_TASKS", data);
-          context.commit("CREATE_EMULATED_TASKS");
-          resolve();
-        })
-        .catch(error => {
-          console.log("Error getting documents: ", error);
+      let data = [];
+      tasks.where("board_id", "==", payload).onSnapshot(querySnapshot => {
+        data = [];
+        querySnapshot.forEach(doc => {
+          data.push(doc.data());
         });
+
+        context.commit("SET_TASKS", data);
+        context.commit("CREATE_EMULATED_TASKS");
+        resolve();
+      });
     });
   },
   async fetchIndividualBoard(context, payload) {
@@ -298,6 +333,46 @@ export const actions = {
     });
     console.log("Tag has been added");
   },
+  async addCheckItem(context, payload) {
+    const userId = context.rootGetters["auth/user"].uid;
+    const board = context.getters.individualBoard;
+
+    const newCheckitem = {
+      creator_id: userId,
+      team_id: board.team_id,
+      completed: false,
+      board_id: board.id,
+      list_id: payload.list_id,
+      task_id: payload.task_id,
+      checklist_id: payload.checklist_id,
+      title: payload.title
+    };
+    const checkitemsDocRef = checkitems.doc();
+    await checkitemsDocRef.set({
+      ...newCheckitem,
+      id: checkitemsDocRef.id
+    });
+    console.log("Checkitem has been added");
+  },
+  async addCheckList(context, payload) {
+    const userId = context.rootGetters["auth/user"].uid;
+    const board = context.getters.individualBoard;
+
+    const newCheckList = {
+      creator_id: userId,
+      team_id: board.team_id,
+      board_id: board.id,
+      list_id: payload.list_id,
+      task_id: payload.taskId,
+      title: payload.checkListName
+    };
+    const checkListsDocRef = checklists.doc();
+    await checkListsDocRef.set({
+      ...newCheckList,
+      id: checkListsDocRef.id
+    });
+    console.log("Checklist has been added");
+  },
   async updateTag(context, payload) {
     const updatedTag = {
       color: payload.tagColor,
@@ -306,6 +381,13 @@ export const actions = {
     await tags.doc(payload.tagId).update(updatedTag);
 
     console.log("Tag has been updated");
+  },
+  async updateCheckItem(context, payload) {
+    const updatedCheckItem = {
+      completed: payload.value
+    };
+    await checkitems.doc(payload.checkitem_id).update(updatedCheckItem);
+    console.log("Checkitem has been updated");
   },
   async editTask(context, payload) {
     tasks.doc(payload.id).update({
@@ -332,6 +414,20 @@ export const actions = {
         tsks.forEach(doc => batch.delete(doc.ref));
         batch.commit();
       });
+  },
+  async deleteCheckList(context, payload) {
+    checklists.doc(payload).delete();
+    const batch = db.batch();
+    checkitems
+      .where("checklist_id", "==", payload)
+      .get()
+      .then(chi => {
+        chi.forEach(doc => batch.delete(doc.ref));
+        batch.commit();
+      });
+  },
+  async deleteCheckItem(context, payload) {
+    await checkitems.doc(payload).delete();
   },
   async removeBoard(context, payload) {
     await boards.doc(payload).delete();

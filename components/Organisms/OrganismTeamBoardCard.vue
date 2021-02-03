@@ -41,4 +41,8 @@ export default {
 .team-and-board-card:not(:last-of-type) {
   margin-bottom: 20px;
 }
+.team-and-board-card {
+  border-bottom: 1px solid #d2d2d2;
+  padding-bottom: 10px;
+}
 </style>

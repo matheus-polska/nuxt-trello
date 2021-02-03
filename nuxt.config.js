@@ -66,6 +66,14 @@ export default {
             set: "@fortawesome/free-solid-svg-icons",
             icons: ["faHandsHelping"]
           },
+          {
+            set: "@fortawesome/free-solid-svg-icons",
+            icons: ["faTasks"]
+          },
+          {
+            set: "@fortawesome/free-solid-svg-icons",
+            icons: ["faTimes"]
+          },
           // { set: "@fortawesome/free-brands-svg-icons", icons: ["faBorderAll"] },
           { set: "@fortawesome/free-regular-svg-icons", icons: ["faLightbulb"] }
         ]
